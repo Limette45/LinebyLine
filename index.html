@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>German Sentence Study</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 30px 15px;
+        background: #f5f7fa;
+        color: #222;
+        font-family: Arial, sans-serif;
+    }
+
+    .app {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    h1 {
+        text-align: center;
+        margin: 0 0 25px;
+        font-size: 28px;
+    }
+
+    .file-area {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    #fileInput {
+        display: none;
+    }
+
+    .file-button {
+        display: inline-block;
+        padding: 10px 18px;
+        background: #222;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .file-name {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #666;
+        min-height: 18px;
+    }
+
+    .page-info {
+        text-align: center;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #555;
+    }
+
+    .sentence-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .sentence-card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 16px;
+    }
+
+    .sentence-number {
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 8px;
+    }
+
+    .sentence {
+        font-size: 17px;
+        line-height: 1.6;
+        margin-bottom: 12px;
+        white-space: pre-wrap;
+    }
+
+    .save-button {
+        padding: 7px 13px;
+        border: 1px solid #bbb;
+        background: #f8f8f8;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+    }
+
+    .save-button:hover {
+        background: #eee;
+    }
+
+    .save-button.saved {
+        background: #222;
+        color: white;
+        border-color: #222;
+    }
+
+    .navigation {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        gap: 10px;
+    }
+
+    .navigation button {
+        padding: 10px 18px;
+        border: 1px solid #bbb;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .navigation button:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    .memo-section {
+        margin-top: 40px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 18px;
+    }
+
+    .memo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .memo-header h2 {
+        margin: 0;
+        font-size: 20px;
+    }
+
+    .memo-buttons {
+        display: flex;
+        gap: 7px;
+    }
+
+    .memo-buttons button {
+        padding: 7px 11px;
+        border: 1px solid #bbb;
+        background: #f8f8f8;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .memo-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .memo-item {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .memo-text {
+        flex: 1;
+        font-size: 15px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    .remove-memo {
+        border: none;
+        background: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .empty-message {
+        color: #999;
+        font-size: 14px;
+        text-align: center;
+        padding: 15px 0;
+    }
+
+    .status {
+        text-align: center;
+        color: #777;
+        font-size: 13px;
+        margin-top: 15px;
+    }
+
+    @media (max-width: 600px) {
+        body {
+            padding: 20px 10px;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        .sentence {
+            font-size: 16px;
+        }
+
+        .memo-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <h1>German Sentence Study</h1>
+
+    <div class="file-area">
+        <label for="fileInput" class="file-button">
+            Choose TXT File
+        </label>
+
+        <input
+            type="file"
+            id="fileInput"
+            accept=".txt,text/plain"
+        >
+
+        <div class="file-name" id="fileName">
+            No file selected
+        </div>
+    </div>
+
+    <div class="page-info" id="pageInfo">
+        No sentences loaded
+    </div>
+
+    <div class="sentence-list" id="sentenceList"></div>
+
+    <div class="navigation">
+        <button id="previousButton" onclick="previousPage()">
+            Previous
+        </button>
+
+        <button id="nextButton" onclick="nextPage()">
+            Next
+        </button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="memo-section">
+
+        <div class="memo-header">
+            <h2>Memo</h2>
+
+            <div class="memo-buttons">
+                <button onclick="copyMemo()">
+                    Copy All
+                </button>
+
+                <button onclick="clearMemo()">
+                    Clear Memo
+                </button>
+            </div>
+        </div>
+
+        <div class="memo-list" id="memoList">
+            <div class="empty-message">
+                No saved sentences
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const STORAGE_KEY = "germanSentenceStudyData";
+
+const SENTENCES_PER_PAGE = 10;
+
+let sentences = [];
+let currentPage = 0;
+let memo = [];
+let currentFileName = "";
+
+
+/*
+    Load saved data
+*/
+function loadSavedData() {
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if (!saved) {
+        return;
+    }
+
+    try {
+
+        const data = JSON.parse(saved);
+
+        sentences = data.sentences || [];
+        currentPage = data.currentPage || 0;
+        memo = data.memo || [];
+        currentFileName = data.fileName || "";
+
+        render();
+
+    } catch (error) {
+
+        console.error("Could not load saved data:", error);
+
+    }
+}
+
+
+/*
+    Save current state
+*/
+function saveData() {
+
+    const data = {
+        sentences: sentences,
+        currentPage: currentPage,
+        memo: memo,
+        fileName: currentFileName
+    };
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(data)
+    );
+}
+
+
+/*
+    Count words
+*/
+function countWords(text) {
+
+    return text
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .length;
+}
+
+
+/*
+    Clean whitespace
+*/
+function cleanText(text) {
+
+    return text
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+
+/*
+    Convert raw TXT into sentences.
+
+    Sentence endings:
+        .
+        !
+        ?
+
+    Short sentences (< 3 words)
+    are merged with the following sentence.
+*/
+function extractSentences(text) {
+
+    // Normalize line breaks and whitespace.
+    text = text
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .replace(/\n+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const rawSentences = [];
+
+    /*
+        This regex captures text ending with
+        ., !, or ?
+
+        It also allows multiple punctuation marks.
+    */
+    const regex = /.*?[.!?]+(?=\s|$)/g;
+
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+
+        let sentence = cleanText(match[0]);
+
+        if (sentence.length > 0) {
+            rawSentences.push(sentence);
+        }
+    }
+
+    /*
+        If there is text after the final punctuation,
+        keep it as a sentence.
+    */
+    const consumed = rawSentences.join(" ");
+
+    if (text.length > consumed.length) {
+
+        let remaining = text.slice(consumed.length).trim();
+
+        if (remaining.length > 0) {
+            rawSentences.push(remaining);
+        }
+    }
+
+    /*
+        Merge short sentences.
+
+        Example:
+
+        "Nein. Ich komme."
+        
+        becomes:
+
+        "Nein. Ich komme."
+    */
+    const finalSentences = [];
+
+    let buffer = "";
+
+    for (let i = 0; i < rawSentences.length; i++) {
+
+        const current = rawSentences[i];
+
+        if (buffer === "") {
+
+            buffer = current;
+
+        } else {
+
+            buffer += " " + current;
+        }
+
+        /*
+            If the current combined text has
+            3 or more words, save it.
+        */
+        if (countWords(buffer) >= 3) {
+
+            finalSentences.push(buffer);
+            buffer = "";
+        }
+    }
+
+    /*
+        Keep any remaining text.
+    */
+    if (buffer.length > 0) {
+
+        if (finalSentences.length > 0) {
+
+            /*
+                A final short sentence is attached
+                to the previous sentence.
+            */
+            finalSentences[
+                finalSentences.length - 1
+            ] += " " + buffer;
+
+        } else {
+
+            finalSentences.push(buffer);
+        }
+    }
+
+    return finalSentences;
+}
+
+
+/*
+    File input
+*/
+document
+    .getElementById("fileInput")
+    .addEventListener("change", function(event) {
+
+        const file = event.target.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+
+            const text = e.target.result;
+
+            const newSentences = extractSentences(text);
+
+            /*
+                Loading a new file completely resets
+                the previous study data.
+            */
+            sentences = newSentences;
+            currentPage = 0;
+            memo = [];
+            currentFileName = file.name;
+
+            saveData();
+            render();
+
+            document.getElementById("status").textContent =
+                `${sentences.length} sentences loaded.`;
+        };
+
+        reader.onerror = function() {
+
+            document.getElementById("status").textContent =
+                "Could not read the file.";
+
+        };
+
+        reader.readAsText(file, "UTF-8");
+    });
+
+
+/*
+    Get current page sentences
+*/
+function getPageSentences() {
+
+    const start =
+        currentPage * SENTENCES_PER_PAGE;
+
+    const end =
+        start + SENTENCES_PER_PAGE;
+
+    return sentences.slice(start, end);
+}
+
+
+/*
+    Check whether a sentence is already in Memo
+*/
+function isSaved(sentence) {
+
+    return memo.includes(sentence);
+}
+
+
+/*
+    Save sentence to Memo
+*/
+function saveSentence(sentence) {
+
+    if (isSaved(sentence)) {
+        return;
+    }
+
+    memo.push(sentence);
+
+    saveData();
+    renderMemo();
+    renderSentences();
+}
+
+
+/*
+    Remove sentence from Memo
+*/
+function removeSentence(sentence) {
+
+    memo = memo.filter(
+        item => item !== sentence
+    );
+
+    saveData();
+    renderMemo();
+    renderSentences();
+}
+
+
+/*
+    Render sentence list
+*/
+function renderSentences() {
+
+    const list =
+        document.getElementById("sentenceList");
+
+    list.innerHTML = "";
+
+    if (sentences.length === 0) {
+        return;
+    }
+
+    const pageSentences = getPageSentences();
+
+    const startNumber =
+        currentPage * SENTENCES_PER_PAGE;
+
+    pageSentences.forEach((sentence, index) => {
+
+        const card =
+            document.createElement("div");
+
+        card.className = "sentence-card";
+
+        const number =
+            document.createElement("div");
+
+        number.className = "sentence-number";
+
+        number.textContent =
+            `Sentence ${startNumber + index + 1}`;
+
+        const text =
+            document.createElement("div");
+
+        text.className = "sentence";
+
+        text.textContent = sentence;
+
+        const button =
+            document.createElement("button");
+
+        button.className = "save-button";
+
+        if (isSaved(sentence)) {
+
+            button.classList.add("saved");
+
+            button.textContent = "Saved";
+
+        } else {
+
+            button.textContent = "Save";
+
+        }
+
+        button.addEventListener(
+            "click",
+            function() {
+
+                if (isSaved(sentence)) {
+
+                    removeSentence(sentence);
+
+                } else {
+
+                    saveSentence(sentence);
+
+                }
+
+            }
+        );
+
+        card.appendChild(number);
+        card.appendChild(text);
+        card.appendChild(button);
+
+        list.appendChild(card);
+
+    });
+}
+
+
+/*
+    Render Memo
+*/
+function renderMemo() {
+
+    const list =
+        document.getElementById("memoList");
+
+    list.innerHTML = "";
+
+    if (memo.length === 0) {
+
+        const empty =
+            document.createElement("div");
+
+        empty.className = "empty-message";
+
+        empty.textContent =
+            "No saved sentences";
+
+        list.appendChild(empty);
+
+        return;
+    }
+
+    memo.forEach(sentence => {
+
+        const item =
+            document.createElement("div");
+
+        item.className = "memo-item";
+
+        const text =
+            document.createElement("div");
+
+        text.className = "memo-text";
+
+        text.textContent = sentence;
+
+        const remove =
+            document.createElement("button");
+
+        remove.className = "remove-memo";
+
+        remove.textContent = "Remove";
+
+        remove.addEventListener(
+            "click",
+            function() {
+
+                removeSentence(sentence);
+
+            }
+        );
+
+        item.appendChild(text);
+        item.appendChild(remove);
+
+        list.appendChild(item);
+
+    });
+}
+
+
+/*
+    Render page information and buttons
+*/
+function renderNavigation() {
+
+    const pageInfo =
+        document.getElementById("pageInfo");
+
+    const previousButton =
+        document.getElementById("previousButton");
+
+    const nextButton =
+        document.getElementById("nextButton");
+
+    if (sentences.length === 0) {
+
+        pageInfo.textContent =
+            "No sentences loaded";
+
+        previousButton.disabled = true;
+        nextButton.disabled = true;
+
+        return;
+    }
+
+    const totalPages =
+        Math.ceil(
+            sentences.length /
+            SENTENCES_PER_PAGE
+        );
+
+    pageInfo.textContent =
+        `Page ${currentPage + 1} / ${totalPages}`;
+
+    previousButton.disabled =
+        currentPage === 0;
+
+    nextButton.disabled =
+        currentPage >= totalPages - 1;
+}
+
+
+/*
+    Render file name
+*/
+function renderFileName() {
+
+    const fileName =
+        document.getElementById("fileName");
+
+    if (currentFileName) {
+
+        fileName.textContent =
+            currentFileName;
+
+    } else {
+
+        fileName.textContent =
+            "No file selected";
+    }
+}
+
+
+/*
+    Render everything
+*/
+function render() {
+
+    renderFileName();
+    renderSentences();
+    renderMemo();
+    renderNavigation();
+}
+
+
+/*
+    Previous page
+*/
+function previousPage() {
+
+    if (currentPage <= 0) {
+        return;
+    }
+
+    currentPage--;
+
+    saveData();
+    render();
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+/*
+    Next page
+*/
+function nextPage() {
+
+    const totalPages =
+        Math.ceil(
+            sentences.length /
+            SENTENCES_PER_PAGE
+        );
+
+    if (currentPage >= totalPages - 1) {
+        return;
+    }
+
+    currentPage++;
+
+    saveData();
+    render();
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+/*
+    Copy all Memo sentences
+*/
+async function copyMemo() {
+
+    if (memo.length === 0) {
+        return;
+    }
+
+    const text =
+        memo.join("\n\n");
+
+    try {
+
+        await navigator.clipboard.writeText(text);
+
+        document.getElementById("status").textContent =
+            "Memo copied to clipboard.";
+
+    } catch (error) {
+
+        /*
+            Fallback for browsers where
+            Clipboard API is unavailable.
+        */
+        const textarea =
+            document.createElement("textarea");
+
+        textarea.value = text;
+
+        document.body.appendChild(textarea);
+
+        textarea.select();
+
+        document.execCommand("copy");
+
+        textarea.remove();
+
+        document.getElementById("status").textContent =
+            "Memo copied to clipboard.";
+    }
+}
+
+
+/*
+    Clear Memo
+*/
+function clearMemo() {
+
+    if (memo.length === 0) {
+        return;
+    }
+
+    const confirmed =
+        confirm(
+            "Clear all saved sentences?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    memo = [];
+
+    saveData();
+    renderMemo();
+    renderSentences();
+
+    document.getElementById("status").textContent =
+        "Memo cleared.";
+}
+
+
+/*
+    Initial load
+*/
+loadSavedData();
+
+</script>
+
+</body>
+</html>
