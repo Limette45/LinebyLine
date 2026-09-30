@@ -55,6 +55,34 @@
         min-height: 18px;
     }
 
+    /* Study time */
+    .time-area {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .time-label {
+        display: block;
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 7px;
+    }
+
+    #timeInput {
+        width: 100px;
+        padding: 8px 10px;
+        border: 1px solid #bbb;
+        border-radius: 5px;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .time-progress {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #555;
+    }
+
     .page-info {
         text-align: center;
         margin-bottom: 15px;
@@ -249,6 +277,27 @@
         </div>
     </div>
 
+    <!-- Study time -->
+    <div class="time-area">
+
+        <label for="timeInput" class="time-label">
+            Total Study Time (minutes)
+        </label>
+
+        <input
+            type="number"
+            id="timeInput"
+            min="0"
+            step="1"
+            placeholder="60"
+        >
+
+        <div class="time-progress" id="timeProgress">
+            0m
+        </div>
+
+    </div>
+
     <div class="page-info" id="pageInfo">
         No sentences loaded
     </div>
@@ -276,7 +325,6 @@
                 <button onclick="copyMemo()">
                     Copy All
                 </button>
-
             </div>
         </div>
 
@@ -301,6 +349,11 @@ let currentPage = 0;
 let memo = [];
 let currentFileName = "";
 
+/*
+    Total study time in minutes
+*/
+let totalStudyTime = 0;
+
 
 /*
     Load saved data
@@ -322,6 +375,11 @@ function loadSavedData() {
         memo = data.memo || [];
         currentFileName = data.fileName || "";
 
+        /*
+            Load saved study time.
+        */
+        totalStudyTime = data.totalStudyTime || 0;
+
         render();
 
     } catch (error) {
@@ -341,7 +399,8 @@ function saveData() {
         sentences: sentences,
         currentPage: currentPage,
         memo: memo,
-        fileName: currentFileName
+        fileName: currentFileName,
+        totalStudyTime: totalStudyTime
     };
 
     localStorage.setItem(
@@ -377,18 +436,9 @@ function cleanText(text) {
 
 /*
     Convert raw TXT into sentences.
-
-    Sentence endings:
-        .
-        !
-        ?
-
-    Short sentences (< 3 words)
-    are merged with the following sentence.
 */
 function extractSentences(text) {
 
-    // Normalize line breaks and whitespace.
     text = text
         .replace(/\r\n/g, "\n")
         .replace(/\r/g, "\n")
@@ -398,12 +448,6 @@ function extractSentences(text) {
 
     const rawSentences = [];
 
-    /*
-        This regex captures text ending with
-        ., !, or ?
-
-        It also allows multiple punctuation marks.
-    */
     const regex = /.*?[.!?]+(?=\s|$)/g;
 
     let match;
@@ -417,10 +461,6 @@ function extractSentences(text) {
         }
     }
 
-    /*
-        If there is text after the final punctuation,
-        keep it as a sentence.
-    */
     const consumed = rawSentences.join(" ");
 
     if (text.length > consumed.length) {
@@ -432,17 +472,6 @@ function extractSentences(text) {
         }
     }
 
-    /*
-        Merge short sentences.
-
-        Example:
-
-        "Nein. Ich komme."
-        
-        becomes:
-
-        "Nein. Ich komme."
-    */
     const finalSentences = [];
 
     let buffer = "";
@@ -460,10 +489,6 @@ function extractSentences(text) {
             buffer += " " + current;
         }
 
-        /*
-            If the current combined text has
-            3 or more words, save it.
-        */
         if (countWords(buffer) >= 3) {
 
             finalSentences.push(buffer);
@@ -471,17 +496,10 @@ function extractSentences(text) {
         }
     }
 
-    /*
-        Keep any remaining text.
-    */
     if (buffer.length > 0) {
 
         if (finalSentences.length > 0) {
 
-            /*
-                A final short sentence is attached
-                to the previous sentence.
-            */
             finalSentences[
                 finalSentences.length - 1
             ] += " " + buffer;
@@ -526,6 +544,16 @@ document
             memo = [];
             currentFileName = file.name;
 
+            /*
+                Reset study time when a new file is loaded.
+            */
+            totalStudyTime = 0;
+
+            /*
+                Reset the visible input field.
+            */
+            document.getElementById("timeInput").value = "";
+
             saveData();
             render();
 
@@ -541,6 +569,29 @@ document
         };
 
         reader.readAsText(file, "UTF-8");
+    });
+
+
+/*
+    Study time input
+*/
+document
+    .getElementById("timeInput")
+    .addEventListener("input", function(event) {
+
+        const value = parseFloat(event.target.value);
+
+        if (isNaN(value) || value < 0) {
+
+            totalStudyTime = 0;
+
+        } else {
+
+            totalStudyTime = value;
+        }
+
+        saveData();
+        renderTimeProgress();
     });
 
 
@@ -750,6 +801,53 @@ function renderMemo() {
 
 
 /*
+    Render study time progress
+*/
+function renderTimeProgress() {
+
+    const progress =
+        document.getElementById("timeProgress");
+
+    if (
+        sentences.length === 0 ||
+        totalStudyTime <= 0
+    ) {
+
+        progress.textContent = "0m";
+        return;
+    }
+
+    const totalPages =
+        Math.ceil(
+            sentences.length /
+            SENTENCES_PER_PAGE
+        );
+
+    /*
+        Page 1 = 1 / totalPages
+        Page 10 = 10 / totalPages
+        Page 100 = 100 / totalPages
+    */
+    const progressTime =
+        totalStudyTime *
+        (currentPage + 1) /
+        totalPages;
+
+    /*
+        Avoid unnecessary decimals.
+        Example:
+        6 -> 6m
+        6.5 -> 6.5m
+    */
+    const roundedTime =
+        Math.round(progressTime * 10) / 10;
+
+    progress.textContent =
+        `${roundedTime}m`;
+}
+
+
+/*
     Render page information and buttons
 */
 function renderNavigation() {
@@ -813,11 +911,28 @@ function renderFileName() {
 
 
 /*
+    Render time input
+*/
+function renderTimeInput() {
+
+    const input =
+        document.getElementById("timeInput");
+
+    input.value =
+        totalStudyTime > 0
+            ? totalStudyTime
+            : "";
+}
+
+
+/*
     Render everything
 */
 function render() {
 
     renderFileName();
+    renderTimeInput();
+    renderTimeProgress();
     renderSentences();
     renderMemo();
     renderNavigation();
@@ -893,10 +1008,6 @@ async function copyMemo() {
 
     } catch (error) {
 
-        /*
-            Fallback for browsers where
-            Clipboard API is unavailable.
-        */
         const textarea =
             document.createElement("textarea");
 
