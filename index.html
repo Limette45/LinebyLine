@@ -88,6 +88,19 @@
         border: 1px solid #e5e7eb;
     }
 
+    .time-summary {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: nowrap;
+        margin-top: 6px;
+        white-space: nowrap;
+        font-size: 0.72rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
     .time-label {
         display: none;
     }
@@ -111,38 +124,17 @@
     }
 
     .time-progress {
-        margin-top: 4px;
-        font-size: 0.8rem;
-        color: #6b7280;
-        font-weight: 500;
+        margin-top: 0;
+        font-size: inherit;
+        color: inherit;
+        font-weight: inherit;
     }
 
-    /* Page info */
-    .page-info {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 24px;
-        flex-wrap: wrap;
-        text-align: center;
-        margin-bottom: 18px;
-        font-size: 0.875rem;
-        color: #6b7280;
-        font-weight: 500;
-    }
-
-    #pageInfo {
-        background: #fff;
-        padding: 6px 14px;
-        border-radius: 20px;
-        border: 1px solid #e5e7eb;
-    }
-
+    #pageInfo,
     #cumulativeWords {
-        background: #fff;
-        padding: 6px 14px;
-        border-radius: 20px;
-        border: 1px solid #e5e7eb;
+        padding: 0;
+        border: 0;
+        background: transparent;
     }
 
     /* Sentence list */
@@ -369,12 +361,13 @@
             gap: 12px;
         }
 
-        .page-info {
-            gap: 10px;
+        .time-summary {
+            gap: 7px;
+            font-size: 0.65rem;
         }
 
         .time-area {
-            padding: 16px;
+            padding: 8px 6px;
         }
 
         .sentence-card {
@@ -428,14 +421,11 @@
             placeholder="60"
         >
 
-        <div class="time-progress" id="timeProgress">
-            0m
+        <div class="time-summary">
+            <span class="time-progress" id="timeProgress">0m</span>
+            <span id="pageInfo">No sentences loaded</span>
+            <span id="cumulativeWords">Cumulative Words: 0 / 0</span>
         </div>
-    </div>
-
-    <div class="page-info">
-        <span id="pageInfo">No sentences loaded</span>
-        <span id="cumulativeWords">Cumulative Words: 0 / 0</span>
     </div>
 
     <div class="sentence-list" id="sentenceList"></div>
