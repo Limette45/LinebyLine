@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -191,7 +190,7 @@
         font-size: 12px;
     }
 
-    .memo-buttons .clear-button.confirm {
+    .memo-buttons button.clear-confirm {
         background: #222;
         color: white;
         border-color: #222;
@@ -216,14 +215,6 @@
         font-size: 15px;
         line-height: 1.5;
         white-space: pre-wrap;
-    }
-
-    .remove-memo {
-        border: none;
-        background: none;
-        color: #888;
-        cursor: pointer;
-        font-size: 12px;
     }
 
     .empty-message {
@@ -330,11 +321,8 @@
                 <button onclick="copyMemo()">
                     Copy All
                 </button>
-                <button
-                    id="clearMemoButton"
-                    class="clear-button"
-                    onclick="clearMemo()"
-                >
+
+                <button id="clearMemoButton" onclick="clearMemo()">
                     Clear All
                 </button>
             </div>
@@ -361,7 +349,7 @@ let currentPage = 0;
 let memo = [];
 let currentFileName = "";
 let totalStudyTime = 0;
-let clearMemoConfirm = false;
+let clearMemoArmed = false;
 
 function loadSavedData() {
 
@@ -521,10 +509,11 @@ document
             memo = [];
             currentFileName = file.name;
             totalStudyTime = 0;
-            clearMemoConfirm = false;
+            clearMemoArmed = false;
 
             document.getElementById("timeInput").value = "";
 
+            updateClearMemoButton();
             saveData();
             render();
 
@@ -588,6 +577,7 @@ function saveSentence(sentence) {
     saveData();
     renderMemo();
     renderSentences();
+    updateClearMemoButton();
 }
 
 function removeSentence(sentence) {
@@ -599,6 +589,7 @@ function removeSentence(sentence) {
     saveData();
     renderMemo();
     renderSentences();
+    updateClearMemoButton();
 }
 
 function renderSentences() {
@@ -718,24 +709,7 @@ function renderMemo() {
 
         text.textContent = sentence;
 
-        const remove =
-            document.createElement("button");
-
-        remove.className = "remove-memo";
-
-        remove.textContent = "Remove";
-
-        remove.addEventListener(
-            "click",
-            function() {
-
-                removeSentence(sentence);
-
-            }
-        );
-
         item.appendChild(text);
-        item.appendChild(remove);
 
         list.appendChild(item);
 
@@ -840,20 +814,29 @@ function renderTimeInput() {
             : "";
 }
 
-function renderClearMemoButton() {
+function updateClearMemoButton() {
 
     const button =
         document.getElementById("clearMemoButton");
 
-    if (clearMemoConfirm) {
+    if (memo.length === 0) {
+
+        clearMemoArmed = false;
+        button.textContent = "Clear All";
+        button.classList.remove("clear-confirm");
+        return;
+    }
+
+    if (clearMemoArmed) {
 
         button.textContent = "Confirm Clear?";
-        button.classList.add("confirm");
+        button.classList.add("clear-confirm");
 
     } else {
 
         button.textContent = "Clear All";
-        button.classList.remove("confirm");
+        button.classList.remove("clear-confirm");
+
     }
 }
 
@@ -865,7 +848,7 @@ function render() {
     renderSentences();
     renderMemo();
     renderNavigation();
-    renderClearMemoButton();
+    updateClearMemoButton();
 }
 
 function previousPage() {
@@ -947,15 +930,13 @@ async function copyMemo() {
 function clearMemo() {
 
     if (memo.length === 0) {
-        clearMemoConfirm = false;
-        renderClearMemoButton();
         return;
     }
 
-    if (!clearMemoConfirm) {
+    if (!clearMemoArmed) {
 
-        clearMemoConfirm = true;
-        renderClearMemoButton();
+        clearMemoArmed = true;
+        updateClearMemoButton();
 
         document.getElementById("status").textContent =
             "Press Confirm Clear? again to delete all saved sentences.";
@@ -964,12 +945,12 @@ function clearMemo() {
     }
 
     memo = [];
-    clearMemoConfirm = false;
+    clearMemoArmed = false;
 
     saveData();
     renderMemo();
     renderSentences();
-    renderClearMemoButton();
+    updateClearMemoButton();
 
     document.getElementById("status").textContent =
         "Memo cleared.";
