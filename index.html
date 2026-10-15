@@ -84,25 +84,15 @@
     }
 
     .page-info {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
         text-align: center;
         margin-bottom: 15px;
         font-size: 14px;
         color: #555;
-    }
-
-    .page-time-row {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-bottom: 15px;
-        font-size: 14px;
-        color: #555;
-    }
-
-    .page-time-row .page-info {
-        margin: 0;
     }
 
     .sentence-list {
@@ -265,7 +255,7 @@
             flex-direction: column;
         }
 
-        .page-time-row {
+        .page-info {
             gap: 12px;
         }
     }
@@ -306,20 +296,15 @@
             step="1"
             placeholder="60"
         >
-    </div>
-
-    <div class="page-time-row">
-        <div class="page-info" id="pageInfo">
-            No sentences loaded
-        </div>
 
         <div class="time-progress" id="timeProgress">
             0m
         </div>
     </div>
 
-    <div class="page-info" id="cumulativeWords">
-        Cumulative Words: 0
+    <div class="page-info">
+        <span id="pageInfo">No sentences loaded</span>
+        <span id="cumulativeWords">Cumulative Words: 0</span>
     </div>
 
     <div class="sentence-list" id="sentenceList"></div>
@@ -665,7 +650,7 @@ function renderTimeProgress() {
     const progress = document.getElementById("timeProgress");
 
     if (sentences.length === 0 || totalStudyTime <= 0) {
-        progress.textContent = "Time: 0m";
+        progress.textContent = "0m";
         return;
     }
 
@@ -679,7 +664,7 @@ function renderTimeProgress() {
     const roundedTime =
         Math.round(progressTime * 10) / 10;
 
-    progress.textContent = `Time: ${roundedTime}m`;
+    progress.textContent = `${roundedTime}m`;
 }
 
 function renderNavigation() {
