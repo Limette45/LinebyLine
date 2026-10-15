@@ -304,7 +304,7 @@
 
     <div class="page-info">
         <span id="pageInfo">No sentences loaded</span>
-        <span id="cumulativeWords">Cumulative Words: 0</span>
+        <span id="cumulativeWords">Cumulative Words: 0 / 0</span>
     </div>
 
     <div class="sentence-list" id="sentenceList"></div>
@@ -700,24 +700,25 @@ function renderCumulativeWords() {
     const element =
         document.getElementById("cumulativeWords");
 
-    if (sentences.length === 0) {
-        element.textContent = "Cumulative Words: 0";
-        return;
-    }
+    const totalWords = sentences.reduce(
+        (sum, sentence) => sum + countWords(sentence),
+        0
+    );
 
     const endIndex = Math.min(
         (currentPage + 1) * SENTENCES_PER_PAGE,
         sentences.length
     );
 
-    const totalWords = sentences
+    const cumulativeWords = sentences
         .slice(0, endIndex)
-        .reduce((sum, sentence) => {
-            return sum + countWords(sentence);
-        }, 0);
+        .reduce(
+            (sum, sentence) => sum + countWords(sentence),
+            0
+        );
 
     element.textContent =
-        `Cumulative Words: ${totalWords.toLocaleString()}`;
+        `Cumulative Words: ${cumulativeWords.toLocaleString()} / ${totalWords.toLocaleString()}`;
 }
 
 function renderFileName() {
