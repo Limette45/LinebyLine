@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,7 +56,6 @@
         min-height: 18px;
     }
 
-    /* Study time */
     .time-area {
         text-align: center;
         margin-bottom: 15px;
@@ -191,6 +191,12 @@
         font-size: 12px;
     }
 
+    .memo-buttons .clear-button.confirm {
+        background: #222;
+        color: white;
+        border-color: #222;
+    }
+
     .memo-list {
         display: flex;
         flex-direction: column;
@@ -277,7 +283,6 @@
         </div>
     </div>
 
-    <!-- Study time -->
     <div class="time-area">
 
         <label for="timeInput" class="time-label">
@@ -325,6 +330,13 @@
                 <button onclick="copyMemo()">
                     Copy All
                 </button>
+                <button
+                    id="clearMemoButton"
+                    class="clear-button"
+                    onclick="clearMemo()"
+                >
+                    Clear All
+                </button>
             </div>
         </div>
 
@@ -348,16 +360,9 @@ let sentences = [];
 let currentPage = 0;
 let memo = [];
 let currentFileName = "";
-
-/*
-    Total study time in minutes
-*/
 let totalStudyTime = 0;
+let clearMemoConfirm = false;
 
-
-/*
-    Load saved data
-*/
 function loadSavedData() {
 
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -374,10 +379,6 @@ function loadSavedData() {
         currentPage = data.currentPage || 0;
         memo = data.memo || [];
         currentFileName = data.fileName || "";
-
-        /*
-            Load saved study time.
-        */
         totalStudyTime = data.totalStudyTime || 0;
 
         render();
@@ -389,10 +390,6 @@ function loadSavedData() {
     }
 }
 
-
-/*
-    Save current state
-*/
 function saveData() {
 
     const data = {
@@ -409,10 +406,6 @@ function saveData() {
     );
 }
 
-
-/*
-    Count words
-*/
 function countWords(text) {
 
     return text
@@ -422,10 +415,6 @@ function countWords(text) {
         .length;
 }
 
-
-/*
-    Clean whitespace
-*/
 function cleanText(text) {
 
     return text
@@ -433,10 +422,6 @@ function cleanText(text) {
         .trim();
 }
 
-
-/*
-    Convert raw TXT into sentences.
-*/
 function extractSentences(text) {
 
     text = text
@@ -513,10 +498,6 @@ function extractSentences(text) {
     return finalSentences;
 }
 
-
-/*
-    File input
-*/
 document
     .getElementById("fileInput")
     .addEventListener("change", function(event) {
@@ -535,23 +516,13 @@ document
 
             const newSentences = extractSentences(text);
 
-            /*
-                Loading a new file completely resets
-                the previous study data.
-            */
             sentences = newSentences;
             currentPage = 0;
             memo = [];
             currentFileName = file.name;
-
-            /*
-                Reset study time when a new file is loaded.
-            */
             totalStudyTime = 0;
+            clearMemoConfirm = false;
 
-            /*
-                Reset the visible input field.
-            */
             document.getElementById("timeInput").value = "";
 
             saveData();
@@ -571,10 +542,6 @@ document
         reader.readAsText(file, "UTF-8");
     });
 
-
-/*
-    Study time input
-*/
 document
     .getElementById("timeInput")
     .addEventListener("input", function(event) {
@@ -594,10 +561,6 @@ document
         renderTimeProgress();
     });
 
-
-/*
-    Get current page sentences
-*/
 function getPageSentences() {
 
     const start =
@@ -609,19 +572,11 @@ function getPageSentences() {
     return sentences.slice(start, end);
 }
 
-
-/*
-    Check whether a sentence is already in Memo
-*/
 function isSaved(sentence) {
 
     return memo.includes(sentence);
 }
 
-
-/*
-    Save sentence to Memo
-*/
 function saveSentence(sentence) {
 
     if (isSaved(sentence)) {
@@ -635,10 +590,6 @@ function saveSentence(sentence) {
     renderSentences();
 }
 
-
-/*
-    Remove sentence from Memo
-*/
 function removeSentence(sentence) {
 
     memo = memo.filter(
@@ -650,10 +601,6 @@ function removeSentence(sentence) {
     renderSentences();
 }
 
-
-/*
-    Render sentence list
-*/
 function renderSentences() {
 
     const list =
@@ -735,10 +682,6 @@ function renderSentences() {
     });
 }
 
-
-/*
-    Render Memo
-*/
 function renderMemo() {
 
     const list =
@@ -799,10 +742,6 @@ function renderMemo() {
     });
 }
 
-
-/*
-    Render study time progress
-*/
 function renderTimeProgress() {
 
     const progress =
@@ -823,22 +762,11 @@ function renderTimeProgress() {
             SENTENCES_PER_PAGE
         );
 
-    /*
-        Page 1 = 1 / totalPages
-        Page 10 = 10 / totalPages
-        Page 100 = 100 / totalPages
-    */
     const progressTime =
         totalStudyTime *
         (currentPage + 1) /
         totalPages;
 
-    /*
-        Avoid unnecessary decimals.
-        Example:
-        6 -> 6m
-        6.5 -> 6.5m
-    */
     const roundedTime =
         Math.round(progressTime * 10) / 10;
 
@@ -846,10 +774,6 @@ function renderTimeProgress() {
         `${roundedTime}m`;
 }
 
-
-/*
-    Render page information and buttons
-*/
 function renderNavigation() {
 
     const pageInfo =
@@ -888,10 +812,6 @@ function renderNavigation() {
         currentPage >= totalPages - 1;
 }
 
-
-/*
-    Render file name
-*/
 function renderFileName() {
 
     const fileName =
@@ -909,10 +829,6 @@ function renderFileName() {
     }
 }
 
-
-/*
-    Render time input
-*/
 function renderTimeInput() {
 
     const input =
@@ -924,10 +840,23 @@ function renderTimeInput() {
             : "";
 }
 
+function renderClearMemoButton() {
 
-/*
-    Render everything
-*/
+    const button =
+        document.getElementById("clearMemoButton");
+
+    if (clearMemoConfirm) {
+
+        button.textContent = "Confirm Clear?";
+        button.classList.add("confirm");
+
+    } else {
+
+        button.textContent = "Clear All";
+        button.classList.remove("confirm");
+    }
+}
+
 function render() {
 
     renderFileName();
@@ -936,12 +865,9 @@ function render() {
     renderSentences();
     renderMemo();
     renderNavigation();
+    renderClearMemoButton();
 }
 
-
-/*
-    Previous page
-*/
 function previousPage() {
 
     if (currentPage <= 0) {
@@ -959,10 +885,6 @@ function previousPage() {
     });
 }
 
-
-/*
-    Next page
-*/
 function nextPage() {
 
     const totalPages =
@@ -986,10 +908,6 @@ function nextPage() {
     });
 }
 
-
-/*
-    Copy all Memo sentences
-*/
 async function copyMemo() {
 
     if (memo.length === 0) {
@@ -1026,39 +944,37 @@ async function copyMemo() {
     }
 }
 
-
-/*
-    Clear Memo
-*/
 function clearMemo() {
 
     if (memo.length === 0) {
+        clearMemoConfirm = false;
+        renderClearMemoButton();
         return;
     }
 
-    const confirmed =
-        confirm(
-            "Clear all saved sentences?"
-        );
+    if (!clearMemoConfirm) {
 
-    if (!confirmed) {
+        clearMemoConfirm = true;
+        renderClearMemoButton();
+
+        document.getElementById("status").textContent =
+            "Press Confirm Clear? again to delete all saved sentences.";
+
         return;
     }
 
     memo = [];
+    clearMemoConfirm = false;
 
     saveData();
     renderMemo();
     renderSentences();
+    renderClearMemoButton();
 
     document.getElementById("status").textContent =
         "Memo cleared.";
 }
 
-
-/*
-    Initial load
-*/
 loadSavedData();
 
 </script>
