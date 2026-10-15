@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,30 +8,38 @@
 <style>
     * {
         box-sizing: border-box;
+        margin: 0;
+        padding: 0;
     }
 
     body {
         margin: 0;
-        padding: 30px 15px;
-        background: #f5f7fa;
-        color: #222;
-        font-family: Arial, sans-serif;
+        padding: 32px 16px;
+        background: linear-gradient(160deg, #f0f4f8 0%, #e8eef5 100%);
+        color: #1a1a2e;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.5;
+        min-height: 100vh;
     }
 
     .app {
-        max-width: 800px;
+        max-width: 780px;
         margin: 0 auto;
     }
 
     h1 {
         text-align: center;
-        margin: 0 0 25px;
-        font-size: 28px;
+        margin: 0 0 28px;
+        font-size: 1.85rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #1a1a2e;
     }
 
+    /* File area */
     .file-area {
         text-align: center;
-        margin-bottom: 25px;
+        margin-bottom: 28px;
     }
 
     #fileInput {
@@ -41,222 +48,350 @@
 
     .file-button {
         display: inline-block;
-        padding: 10px 18px;
-        background: #222;
-        color: white;
-        border-radius: 6px;
+        padding: 12px 24px;
+        background: #1a1a2e;
+        color: #fff;
+        border-radius: 10px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+        box-shadow: 0 2px 8px rgba(26, 26, 46, 0.18);
+    }
+
+    .file-button:hover {
+        background: #2d2d4a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(26, 26, 46, 0.25);
+    }
+
+    .file-button:active {
+        transform: translateY(0);
     }
 
     .file-name {
-        margin-top: 10px;
-        font-size: 13px;
-        color: #666;
-        min-height: 18px;
+        margin-top: 12px;
+        font-size: 0.85rem;
+        color: #6b7280;
+        min-height: 20px;
     }
 
+    /* Time area */
     .time-area {
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 18px 20px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e5e7eb;
     }
 
     .time-label {
         display: block;
-        font-size: 14px;
-        color: #555;
-        margin-bottom: 7px;
+        font-size: 0.875rem;
+        color: #4b5563;
+        margin-bottom: 10px;
+        font-weight: 500;
     }
 
     #timeInput {
-        width: 100px;
-        padding: 8px 10px;
-        border: 1px solid #bbb;
-        border-radius: 5px;
-        font-size: 14px;
+        width: 110px;
+        padding: 10px 12px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.95rem;
         text-align: center;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        background: #fafafa;
+    }
+
+    #timeInput:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        background: #fff;
     }
 
     .time-progress {
-        margin-top: 8px;
-        font-size: 14px;
-        color: #555;
+        margin-top: 10px;
+        font-size: 0.95rem;
+        color: #3b82f6;
+        font-weight: 600;
     }
 
+    /* Page info */
     .page-info {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 20px;
+        gap: 24px;
         flex-wrap: wrap;
         text-align: center;
-        margin-bottom: 15px;
-        font-size: 14px;
-        color: #555;
+        margin-bottom: 18px;
+        font-size: 0.875rem;
+        color: #6b7280;
+        font-weight: 500;
     }
 
+    #pageInfo {
+        background: #fff;
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid #e5e7eb;
+    }
+
+    #cumulativeWords {
+        background: #fff;
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid #e5e7eb;
+    }
+
+    /* Sentence list */
     .sentence-list {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 14px;
     }
 
     .sentence-card {
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 16px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 18px 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .sentence-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        border-color: #d1d5db;
     }
 
     .sentence-number {
-        font-size: 12px;
-        color: #888;
+        font-size: 0.75rem;
+        color: #9ca3af;
         margin-bottom: 8px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
     }
 
     .sentence {
-        font-size: 17px;
-        line-height: 1.6;
-        margin-bottom: 12px;
+        font-size: 1.05rem;
+        line-height: 1.7;
+        margin-bottom: 14px;
         white-space: pre-wrap;
+        color: #1f2937;
     }
 
     .save-button {
-        padding: 7px 13px;
-        border: 1px solid #bbb;
-        background: #f8f8f8;
-        border-radius: 5px;
+        padding: 8px 16px;
+        border: 1.5px solid #d1d5db;
+        background: #f9fafb;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 13px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        transition: all 0.2s ease;
     }
 
     .save-button:hover {
-        background: #eee;
+        background: #f3f4f6;
+        border-color: #9ca3af;
     }
 
     .save-button.saved {
-        background: #222;
-        color: white;
-        border-color: #222;
+        background: #1a1a2e;
+        color: #fff;
+        border-color: #1a1a2e;
     }
 
+    .save-button.saved:hover {
+        background: #2d2d4a;
+        border-color: #2d2d4a;
+    }
+
+    /* Navigation */
     .navigation {
         display: flex;
         justify-content: space-between;
-        margin-top: 20px;
-        gap: 10px;
+        margin-top: 24px;
+        gap: 12px;
     }
 
     .navigation button {
-        padding: 10px 18px;
-        border: 1px solid #bbb;
-        background: white;
-        border-radius: 6px;
+        padding: 12px 22px;
+        border: 1.5px solid #d1d5db;
+        background: #fff;
+        border-radius: 10px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #374151;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .navigation button:hover:not(:disabled) {
+        background: #f9fafb;
+        border-color: #9ca3af;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
     }
 
     .navigation button:disabled {
-        opacity: 0.4;
+        opacity: 0.35;
         cursor: default;
+        box-shadow: none;
     }
 
+    /* Status */
+    .status {
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-top: 18px;
+        min-height: 20px;
+    }
+
+    /* Memo section */
     .memo-section {
-        margin-top: 40px;
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 18px;
+        margin-top: 48px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 22px 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
     .memo-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 15px;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #f3f4f6;
     }
 
     .memo-header h2 {
         margin: 0;
-        font-size: 20px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1a2e;
     }
 
     .memo-buttons {
         display: flex;
-        gap: 7px;
+        gap: 8px;
     }
 
     .memo-buttons button {
-        padding: 7px 11px;
-        border: 1px solid #bbb;
-        background: #f8f8f8;
-        border-radius: 5px;
+        padding: 8px 14px;
+        border: 1.5px solid #d1d5db;
+        background: #f9fafb;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        transition: all 0.2s ease;
+    }
+
+    .memo-buttons button:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
     }
 
     .memo-buttons button.clear-confirm {
-        background: #222;
-        color: white;
-        border-color: #222;
+        background: #dc2626;
+        color: #fff;
+        border-color: #dc2626;
+    }
+
+    .memo-buttons button.clear-confirm:hover {
+        background: #b91c1c;
+        border-color: #b91c1c;
     }
 
     .memo-list {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
     }
 
     .memo-item {
         display: flex;
         gap: 10px;
         align-items: flex-start;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 12px;
+    }
+
+    .memo-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
     }
 
     .memo-text {
         flex: 1;
-        font-size: 15px;
-        line-height: 1.5;
+        font-size: 0.95rem;
+        line-height: 1.6;
         white-space: pre-wrap;
+        color: #1f2937;
     }
 
     .empty-message {
-        color: #999;
-        font-size: 14px;
+        color: #9ca3af;
+        font-size: 0.9rem;
         text-align: center;
-        padding: 15px 0;
+        padding: 20px 0;
     }
 
-    .status {
-        text-align: center;
-        color: #777;
-        font-size: 13px;
-        margin-top: 15px;
-    }
-
+    /* Responsive */
     @media (max-width: 600px) {
         body {
-            padding: 20px 10px;
+            padding: 20px 12px;
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 1.55rem;
+            margin-bottom: 22px;
         }
 
         .sentence {
-            font-size: 18px;
+            font-size: 1.05rem;
         }
 
         .memo-header {
             align-items: flex-start;
             flex-direction: column;
+            gap: 12px;
         }
 
         .page-info {
-            gap: 12px;
+            gap: 10px;
+        }
+
+        .time-area {
+            padding: 16px;
+        }
+
+        .sentence-card {
+            padding: 16px;
+        }
+
+        .memo-section {
+            padding: 18px 16px;
+        }
+
+        .navigation button {
+            padding: 11px 16px;
+            flex: 1;
         }
     }
 </style>
@@ -266,7 +401,7 @@
 
 <div class="app">
 
-    <h1>🇩🇪German Sentence Study</h1>
+    <h1>🇩🇪 German Sentence Study</h1>
 
     <div class="file-area">
         <label for="fileInput" class="file-button">
@@ -758,7 +893,6 @@ function updateClearMemoButton() {
         button.classList.remove("clear-confirm");
     }
 }
-
 function render() {
     renderFileName();
     renderTimeInput();
@@ -865,3 +999,4 @@ loadSavedData();
 
 </body>
 </html>
+   
