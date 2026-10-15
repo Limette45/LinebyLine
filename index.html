@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -275,7 +276,6 @@
     </div>
 
     <div class="time-area">
-
         <label for="timeInput" class="time-label">
             Total Study Time (minutes)
         </label>
@@ -291,11 +291,14 @@
         <div class="time-progress" id="timeProgress">
             0m
         </div>
-
     </div>
 
     <div class="page-info" id="pageInfo">
         No sentences loaded
+    </div>
+
+    <div class="page-info" id="cumulativeWords">
+        Cumulative Words: 0
     </div>
 
     <div class="sentence-list" id="sentenceList"></div>
@@ -313,7 +316,6 @@
     <div class="status" id="status"></div>
 
     <div class="memo-section">
-
         <div class="memo-header">
             <h2>Memo</h2>
 
@@ -333,15 +335,12 @@
                 No saved sentences
             </div>
         </div>
-
     </div>
 
 </div>
 
 <script>
-
 const STORAGE_KEY = "germanSentenceStudyData";
-
 const SENTENCES_PER_PAGE = 10;
 
 let sentences = [];
@@ -352,7 +351,6 @@ let totalStudyTime = 0;
 let clearMemoArmed = false;
 
 function loadSavedData() {
-
     const saved = localStorage.getItem(STORAGE_KEY);
 
     if (!saved) {
@@ -360,7 +358,6 @@ function loadSavedData() {
     }
 
     try {
-
         const data = JSON.parse(saved);
 
         sentences = data.sentences || [];
@@ -369,17 +366,22 @@ function loadSavedData() {
         currentFileName = data.fileName || "";
         totalStudyTime = data.totalStudyTime || 0;
 
+        const totalPages = Math.ceil(
+            sentences.length / SENTENCES_PER_PAGE
+        );
+
+        currentPage = Math.min(
+            currentPage,
+            Math.max(0, totalPages - 1)
+        );
+
         render();
-
     } catch (error) {
-
         console.error("Could not load saved data:", error);
-
     }
 }
 
 function saveData() {
-
     const data = {
         sentences: sentences,
         currentPage: currentPage,
@@ -395,7 +397,6 @@ function saveData() {
 }
 
 function countWords(text) {
-
     return text
         .trim()
         .split(/\s+/)
@@ -404,14 +405,12 @@ function countWords(text) {
 }
 
 function cleanText(text) {
-
     return text
         .replace(/\s+/g, " ")
         .trim();
 }
 
 function extractSentences(text) {
-
     text = text
         .replace(/\r\n/g, "\n")
         .replace(/\r/g, "\n")
@@ -420,13 +419,11 @@ function extractSentences(text) {
         .trim();
 
     const rawSentences = [];
-
     const regex = /.*?[.!?]+(?=\s|$)/g;
 
     let match;
 
     while ((match = regex.exec(text)) !== null) {
-
         let sentence = cleanText(match[0]);
 
         if (sentence.length > 0) {
@@ -437,7 +434,6 @@ function extractSentences(text) {
     const consumed = rawSentences.join(" ");
 
     if (text.length > consumed.length) {
-
         let remaining = text.slice(consumed.length).trim();
 
         if (remaining.length > 0) {
@@ -446,39 +442,29 @@ function extractSentences(text) {
     }
 
     const finalSentences = [];
-
     let buffer = "";
 
     for (let i = 0; i < rawSentences.length; i++) {
-
         const current = rawSentences[i];
 
         if (buffer === "") {
-
             buffer = current;
-
         } else {
-
             buffer += " " + current;
         }
 
         if (countWords(buffer) >= 3) {
-
             finalSentences.push(buffer);
             buffer = "";
         }
     }
 
     if (buffer.length > 0) {
-
         if (finalSentences.length > 0) {
-
             finalSentences[
                 finalSentences.length - 1
             ] += " " + buffer;
-
         } else {
-
             finalSentences.push(buffer);
         }
     }
@@ -489,7 +475,6 @@ function extractSentences(text) {
 document
     .getElementById("fileInput")
     .addEventListener("change", function(event) {
-
         const file = event.target.files[0];
 
         if (!file) {
@@ -499,9 +484,7 @@ document
         const reader = new FileReader();
 
         reader.onload = function(e) {
-
             const text = e.target.result;
-
             const newSentences = extractSentences(text);
 
             sentences = newSentences;
@@ -522,10 +505,8 @@ document
         };
 
         reader.onerror = function() {
-
             document.getElementById("status").textContent =
                 "Could not read the file.";
-
         };
 
         reader.readAsText(file, "UTF-8");
@@ -534,15 +515,11 @@ document
 document
     .getElementById("timeInput")
     .addEventListener("input", function(event) {
-
         const value = parseFloat(event.target.value);
 
         if (isNaN(value) || value < 0) {
-
             totalStudyTime = 0;
-
         } else {
-
             totalStudyTime = value;
         }
 
@@ -551,23 +528,17 @@ document
     });
 
 function getPageSentences() {
-
-    const start =
-        currentPage * SENTENCES_PER_PAGE;
-
-    const end =
-        start + SENTENCES_PER_PAGE;
+    const start = currentPage * SENTENCES_PER_PAGE;
+    const end = start + SENTENCES_PER_PAGE;
 
     return sentences.slice(start, end);
 }
 
 function isSaved(sentence) {
-
     return memo.includes(sentence);
 }
 
 function saveSentence(sentence) {
-
     if (isSaved(sentence)) {
         return;
     }
@@ -581,7 +552,6 @@ function saveSentence(sentence) {
 }
 
 function removeSentence(sentence) {
-
     memo = memo.filter(
         item => item !== sentence
     );
@@ -593,9 +563,7 @@ function removeSentence(sentence) {
 }
 
 function renderSentences() {
-
-    const list =
-        document.getElementById("sentenceList");
+    const list = document.getElementById("sentenceList");
 
     list.innerHTML = "";
 
@@ -604,165 +572,104 @@ function renderSentences() {
     }
 
     const pageSentences = getPageSentences();
-
-    const startNumber =
-        currentPage * SENTENCES_PER_PAGE;
+    const startNumber = currentPage * SENTENCES_PER_PAGE;
 
     pageSentences.forEach((sentence, index) => {
-
-        const card =
-            document.createElement("div");
-
+        const card = document.createElement("div");
         card.className = "sentence-card";
 
-        const number =
-            document.createElement("div");
-
+        const number = document.createElement("div");
         number.className = "sentence-number";
-
         number.textContent =
             `Sentence ${startNumber + index + 1}`;
 
-        const text =
-            document.createElement("div");
-
+        const text = document.createElement("div");
         text.className = "sentence";
-
         text.textContent = sentence;
 
-        const button =
-            document.createElement("button");
-
+        const button = document.createElement("button");
         button.className = "save-button";
 
         if (isSaved(sentence)) {
-
             button.classList.add("saved");
-
             button.textContent = "Saved";
-
         } else {
-
             button.textContent = "Save";
-
         }
 
-        button.addEventListener(
-            "click",
-            function() {
-
-                if (isSaved(sentence)) {
-
-                    removeSentence(sentence);
-
-                } else {
-
-                    saveSentence(sentence);
-
-                }
-
+        button.addEventListener("click", function() {
+            if (isSaved(sentence)) {
+                removeSentence(sentence);
+            } else {
+                saveSentence(sentence);
             }
-        );
+        });
 
         card.appendChild(number);
         card.appendChild(text);
         card.appendChild(button);
 
         list.appendChild(card);
-
     });
 }
 
 function renderMemo() {
-
-    const list =
-        document.getElementById("memoList");
+    const list = document.getElementById("memoList");
 
     list.innerHTML = "";
 
     if (memo.length === 0) {
-
-        const empty =
-            document.createElement("div");
-
+        const empty = document.createElement("div");
         empty.className = "empty-message";
-
-        empty.textContent =
-            "No saved sentences";
+        empty.textContent = "No saved sentences";
 
         list.appendChild(empty);
-
         return;
     }
 
     memo.forEach(sentence => {
-
-        const item =
-            document.createElement("div");
-
+        const item = document.createElement("div");
         item.className = "memo-item";
 
-        const text =
-            document.createElement("div");
-
+        const text = document.createElement("div");
         text.className = "memo-text";
-
         text.textContent = sentence;
 
         item.appendChild(text);
-
         list.appendChild(item);
-
     });
 }
 
 function renderTimeProgress() {
+    const progress = document.getElementById("timeProgress");
 
-    const progress =
-        document.getElementById("timeProgress");
-
-    if (
-        sentences.length === 0 ||
-        totalStudyTime <= 0
-    ) {
-
+    if (sentences.length === 0 || totalStudyTime <= 0) {
         progress.textContent = "0m";
         return;
     }
 
-    const totalPages =
-        Math.ceil(
-            sentences.length /
-            SENTENCES_PER_PAGE
-        );
+    const totalPages = Math.ceil(
+        sentences.length / SENTENCES_PER_PAGE
+    );
 
     const progressTime =
-        totalStudyTime *
-        (currentPage + 1) /
-        totalPages;
+        totalStudyTime * (currentPage + 1) / totalPages;
 
     const roundedTime =
         Math.round(progressTime * 10) / 10;
 
-    progress.textContent =
-        `${roundedTime}m`;
+    progress.textContent = `${roundedTime}m`;
 }
 
 function renderNavigation() {
-
-    const pageInfo =
-        document.getElementById("pageInfo");
-
+    const pageInfo = document.getElementById("pageInfo");
     const previousButton =
         document.getElementById("previousButton");
-
     const nextButton =
         document.getElementById("nextButton");
 
     if (sentences.length === 0) {
-
-        pageInfo.textContent =
-            "No sentences loaded";
+        pageInfo.textContent = "No sentences loaded";
 
         previousButton.disabled = true;
         nextButton.disabled = true;
@@ -770,57 +677,66 @@ function renderNavigation() {
         return;
     }
 
-    const totalPages =
-        Math.ceil(
-            sentences.length /
-            SENTENCES_PER_PAGE
-        );
+    const totalPages = Math.ceil(
+        sentences.length / SENTENCES_PER_PAGE
+    );
 
     pageInfo.textContent =
         `Page ${currentPage + 1} / ${totalPages}`;
 
-    previousButton.disabled =
-        currentPage === 0;
+    previousButton.disabled = currentPage === 0;
 
     nextButton.disabled =
         currentPage >= totalPages - 1;
 }
 
-function renderFileName() {
+function renderCumulativeWords() {
+    const element =
+        document.getElementById("cumulativeWords");
 
-    const fileName =
-        document.getElementById("fileName");
+    if (sentences.length === 0) {
+        element.textContent = "Cumulative Words: 0";
+        return;
+    }
+
+    const endIndex = Math.min(
+        (currentPage + 1) * SENTENCES_PER_PAGE,
+        sentences.length
+    );
+
+    const totalWords = sentences
+        .slice(0, endIndex)
+        .reduce((sum, sentence) => {
+            return sum + countWords(sentence);
+        }, 0);
+
+    element.textContent =
+        `Cumulative Words: ${totalWords.toLocaleString()}`;
+}
+
+function renderFileName() {
+    const fileName = document.getElementById("fileName");
 
     if (currentFileName) {
-
-        fileName.textContent =
-            currentFileName;
-
+        fileName.textContent = currentFileName;
     } else {
-
-        fileName.textContent =
-            "No file selected";
+        fileName.textContent = "No file selected";
     }
 }
 
 function renderTimeInput() {
+    const input = document.getElementById("timeInput");
 
-    const input =
-        document.getElementById("timeInput");
-
-    input.value =
-        totalStudyTime > 0
-            ? totalStudyTime
-            : "";
+    input.value = totalStudyTime > 0
+        ? totalStudyTime
+        : "";
 }
 
 function updateClearMemoButton() {
-
     const button =
         document.getElementById("clearMemoButton");
 
     if (memo.length === 0) {
-
         clearMemoArmed = false;
         button.textContent = "Clear All";
         button.classList.remove("clear-confirm");
@@ -828,31 +744,26 @@ function updateClearMemoButton() {
     }
 
     if (clearMemoArmed) {
-
         button.textContent = "Confirm Clear?";
         button.classList.add("clear-confirm");
-
     } else {
-
         button.textContent = "Clear All";
         button.classList.remove("clear-confirm");
-
     }
 }
 
 function render() {
-
     renderFileName();
     renderTimeInput();
     renderTimeProgress();
     renderSentences();
     renderMemo();
     renderNavigation();
+    renderCumulativeWords();
     updateClearMemoButton();
 }
 
 function previousPage() {
-
     if (currentPage <= 0) {
         return;
     }
@@ -869,12 +780,9 @@ function previousPage() {
 }
 
 function nextPage() {
-
-    const totalPages =
-        Math.ceil(
-            sentences.length /
-            SENTENCES_PER_PAGE
-        );
+    const totalPages = Math.ceil(
+        sentences.length / SENTENCES_PER_PAGE
+    );
 
     if (currentPage >= totalPages - 1) {
         return;
@@ -892,34 +800,25 @@ function nextPage() {
 }
 
 async function copyMemo() {
-
     if (memo.length === 0) {
         return;
     }
 
-    const text =
-        memo.join("\n\n");
+    const text = memo.join("\n\n");
 
     try {
-
         await navigator.clipboard.writeText(text);
 
         document.getElementById("status").textContent =
             "Memo copied to clipboard.";
-
     } catch (error) {
-
-        const textarea =
-            document.createElement("textarea");
+        const textarea = document.createElement("textarea");
 
         textarea.value = text;
-
         document.body.appendChild(textarea);
-
         textarea.select();
 
         document.execCommand("copy");
-
         textarea.remove();
 
         document.getElementById("status").textContent =
@@ -928,13 +827,11 @@ async function copyMemo() {
 }
 
 function clearMemo() {
-
     if (memo.length === 0) {
         return;
     }
 
     if (!clearMemoArmed) {
-
         clearMemoArmed = true;
         updateClearMemoButton();
 
@@ -957,7 +854,6 @@ function clearMemo() {
 }
 
 loadSavedData();
-
 </script>
 
 </body>
