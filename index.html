@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>German Sentence Study</title>
+<title>📗Line by Line</title>
 
 <style>
     * {
@@ -34,6 +34,36 @@
         font-weight: 700;
         letter-spacing: -0.02em;
         color: #1a1a2e;
+    }
+
+    /* Independent page selector */
+    .page-selector {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin: 0 0 22px;
+    }
+
+    .page-tab {
+        padding: 9px 18px;
+        border: 1.5px solid #d1d5db;
+        background: #fff;
+        border-radius: 9px;
+        cursor: pointer;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .page-tab.active {
+        background: #1a1a2e;
+        color: #fff;
+        border-color: #1a1a2e;
+    }
+
+    .page-tab:focus-visible {
+        outline: 3px solid rgba(59, 130, 246, 0.35);
+        outline-offset: 2px;
     }
 
     /* File area */
@@ -356,6 +386,11 @@
             padding: 20px 12px;
         }
 
+        .page-tab {
+            flex: 1;
+            padding: 9px 10px;
+        }
+
         h1 {
             font-size: 1.55rem;
             margin-bottom: 22px;
@@ -406,7 +441,13 @@
 
 <div class="app">
 
-    <h1>🇩🇪 German Sentence Study</h1>
+    <nav class="page-selector" aria-label="Study pages">
+        <button type="button" class="page-tab active" data-page="1" aria-pressed="true">Page 1</button>
+        <button type="button" class="page-tab" data-page="2" aria-pressed="false">Page 2</button>
+        <button type="button" class="page-tab" data-page="3" aria-pressed="false">Page 3</button>
+    </nav>
+
+    <h1>📗Line by Line</h1>
 
     <div class="file-area">
         <label for="fileInput" class="file-button">
@@ -483,8 +524,47 @@
 </div>
 
 <script>
-const STORAGE_KEY = "germanSentenceStudyData";
+const STORAGE_KEY_PREFIX = "lineByLineIndependentPage";
+const ACTIVE_PAGE_KEY = "lineByLineActivePage";
 const SENTENCES_PER_PAGE = 10;
+const savedActivePage = Number(localStorage.getItem(ACTIVE_PAGE_KEY));
+let activePage = [1, 2, 3].includes(savedActivePage) ? savedActivePage : 1;
+
+function getStorageKey() {
+    return `${STORAGE_KEY_PREFIX}_${activePage}`;
+}
+
+document.querySelectorAll(".page-tab").forEach(button => {
+    const selected = Number(button.dataset.page) === activePage;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-pressed", String(selected));
+
+    button.addEventListener("click", () => {
+        const nextPage = Number(button.dataset.page);
+        if (nextPage === activePage) return;
+
+        saveData();
+        activePage = nextPage;
+        localStorage.setItem(ACTIVE_PAGE_KEY, String(activePage));
+
+        document.querySelectorAll(".page-tab").forEach(tab => {
+            const selected = Number(tab.dataset.page) === activePage;
+            tab.classList.toggle("active", selected);
+            tab.setAttribute("aria-pressed", String(selected));
+        });
+
+        document.getElementById("fileInput").value = "";
+        document.getElementById("status").textContent = "";
+        sentences = [];
+        currentPage = 0;
+        memo = [];
+        currentFileName = "";
+        totalStudyTime = 0;
+        clearMemoArmed = false;
+        loadSavedData();
+        render();
+    });
+});
 
 let sentences = [];
 let currentPage = 0;
@@ -494,9 +574,16 @@ let totalStudyTime = 0;
 let clearMemoArmed = false;
 
 function loadSavedData() {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(getStorageKey());
 
     if (!saved) {
+        sentences = [];
+        currentPage = 0;
+        memo = [];
+        currentFileName = "";
+        totalStudyTime = 0;
+        clearMemoArmed = false;
+        render();
         return;
     }
 
@@ -525,6 +612,7 @@ function loadSavedData() {
 }
 
 function saveData() {
+    localStorage.setItem(ACTIVE_PAGE_KEY, String(activePage));
     const data = {
         sentences: sentences,
         currentPage: currentPage,
@@ -534,7 +622,7 @@ function saveData() {
     };
 
     localStorage.setItem(
-        STORAGE_KEY,
+        getStorageKey(),
         JSON.stringify(data)
     );
 }
