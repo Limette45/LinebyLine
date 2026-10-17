@@ -950,7 +950,7 @@ function renderFileName() {
     const fileName = document.getElementById("fileName");
 
     if (currentFileName) {
-        fileName.textContent = currentFileName;
+        fileName.textContent = currentFileName.replace(/\s*\[[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
     } else {
         fileName.textContent = "No file selected";
     }
