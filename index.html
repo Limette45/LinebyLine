@@ -107,6 +107,27 @@
         min-height: 20px;
     }
 
+    .file-meta {
+        margin-top: 6px;
+        font-size: 0.78rem;
+        color: #9ca3af;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        min-height: 18px;
+    }
+
+    .file-flag {
+        font-size: 1.05rem;
+        line-height: 1;
+    }
+
+    .file-date {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
     /* Time area */
     .time-area {
         display: flex;
@@ -145,24 +166,6 @@
         display: none;
     }
 
-    #timeInput {
-        width: 90px;
-        padding: 6px 8px;
-        border: 1.5px solid #d1d5db;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        text-align: center;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        background: #fafafa;
-    }
-
-    #timeInput:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        background: #fff;
-    }
-
     .time-progress {
         margin-top: 0;
         font-size: inherit;
@@ -175,6 +178,29 @@
         padding: 0;
         border: 0;
         background: transparent;
+    }
+
+    /* Jump to memo */
+    .jump-memo-wrap {
+        text-align: center;
+        margin-bottom: 18px;
+    }
+
+    .jump-memo-button {
+        padding: 8px 16px;
+        border: 1.5px solid #d1d5db;
+        background: #f9fafb;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        transition: all 0.2s ease;
+    }
+
+    .jump-memo-button:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
     }
 
     /* Sentence list */
@@ -275,6 +301,56 @@
         opacity: 0.35;
         cursor: default;
         box-shadow: none;
+    }
+
+    /* Page jump */
+    .page-jump {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .page-jump label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    #pageJumpInput {
+        width: 70px;
+        padding: 7px 8px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        text-align: center;
+        background: #fafafa;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #pageJumpInput:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        background: #fff;
+    }
+
+    .page-jump-button {
+        padding: 7px 14px;
+        border: 1.5px solid #d1d5db;
+        background: #fff;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        transition: all 0.2s ease;
+    }
+
+    .page-jump-button:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
     }
 
     /* Status */
@@ -433,6 +509,10 @@
             padding: 11px 16px;
             flex: 1;
         }
+
+        .page-jump {
+            flex-wrap: wrap;
+        }
     }
 </style>
 </head>
@@ -463,26 +543,25 @@
         <div class="file-name" id="fileName">
             No file selected
         </div>
+
+        <div class="file-meta" id="fileMeta">
+            <span class="file-flag" id="fileFlag"></span>
+            <span class="file-date" id="fileDate"></span>
+        </div>
     </div>
 
     <div class="time-area">
-        <label for="timeInput" class="time-label">
-            Total Study Time (minutes)
-        </label>
-
-        <input
-            type="number"
-            id="timeInput"
-            min="0"
-            step="1"
-            placeholder="60"
-        >
-
         <div class="time-summary">
-            <span class="time-progress" id="timeProgress">0m</span>,
+            <span class="time-progress" id="timeProgress">0m / 0m</span>,
             <span id="pageInfo">No sentences loaded</span>,
             <span id="cumulativeWords">Cumulative Words: 0 / 0</span>
         </div>
+    </div>
+
+    <div class="jump-memo-wrap">
+        <button type="button" class="jump-memo-button" onclick="jumpToMemo()">
+            Go to Memo
+        </button>
     </div>
 
     <div class="sentence-list" id="sentenceList"></div>
@@ -497,9 +576,23 @@
         </button>
     </div>
 
+    <div class="page-jump">
+        <label for="pageJumpInput">Page</label>
+        <input
+            type="number"
+            id="pageJumpInput"
+            min="1"
+            step="1"
+            placeholder="1"
+        >
+        <button type="button" class="page-jump-button" onclick="jumpToPage()">
+            Go
+        </button>
+    </div>
+
     <div class="status" id="status"></div>
 
-    <div class="memo-section">
+    <div class="memo-section" id="memoSection">
         <div class="memo-header">
             <h2>Memo</h2>
 
@@ -527,6 +620,7 @@
 const STORAGE_KEY_PREFIX = "lineByLineIndependentPage";
 const ACTIVE_PAGE_KEY = "lineByLineActivePage";
 const SENTENCES_PER_PAGE = 10;
+const WORDS_PER_MINUTE = 160;
 const savedActivePage = Number(localStorage.getItem(ACTIVE_PAGE_KEY));
 let activePage = [1, 2, 3].includes(savedActivePage) ? savedActivePage : 1;
 
@@ -559,7 +653,8 @@ document.querySelectorAll(".page-tab").forEach(button => {
         currentPage = 0;
         memo = [];
         currentFileName = "";
-        totalStudyTime = 0;
+        loadDate = "";
+        detectedFlag = "";
         clearMemoArmed = false;
         loadSavedData();
         render();
@@ -570,7 +665,8 @@ let sentences = [];
 let currentPage = 0;
 let memo = [];
 let currentFileName = "";
-let totalStudyTime = 0;
+let loadDate = "";
+let detectedFlag = "";
 let clearMemoArmed = false;
 
 function loadSavedData() {
@@ -581,7 +677,8 @@ function loadSavedData() {
         currentPage = 0;
         memo = [];
         currentFileName = "";
-        totalStudyTime = 0;
+        loadDate = "";
+        detectedFlag = "";
         clearMemoArmed = false;
         render();
         return;
@@ -594,7 +691,8 @@ function loadSavedData() {
         currentPage = data.currentPage || 0;
         memo = data.memo || [];
         currentFileName = data.fileName || "";
-        totalStudyTime = data.totalStudyTime || 0;
+        loadDate = data.loadDate || "";
+        detectedFlag = data.detectedFlag || "";
 
         const totalPages = Math.ceil(
             sentences.length / SENTENCES_PER_PAGE
@@ -618,7 +716,8 @@ function saveData() {
         currentPage: currentPage,
         memo: memo,
         fileName: currentFileName,
-        totalStudyTime: totalStudyTime
+        loadDate: loadDate,
+        detectedFlag: detectedFlag
     };
 
     localStorage.setItem(
@@ -703,6 +802,30 @@ function extractSentences(text) {
     return finalSentences;
 }
 
+function detectLanguage(text) {
+    if (text.includes("ñ") || text.includes("Ñ")) {
+        return "🇪🇸";
+    }
+    if (text.includes("ß")) {
+        return "🇩🇪";
+    }
+    if (text.includes("å") || text.includes("Å")) {
+        return "🇸🇪";
+    }
+    if (text.includes("ç") || text.includes("Ç")) {
+        return "🇫🇷";
+    }
+    return "🇺🇸";
+}
+
+function formatLoadDate() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
 document
     .getElementById("fileInput")
     .addEventListener("change", function(event) {
@@ -722,10 +845,9 @@ document
             currentPage = 0;
             memo = [];
             currentFileName = file.name;
-            totalStudyTime = 0;
+            loadDate = formatLoadDate();
+            detectedFlag = detectLanguage(text);
             clearMemoArmed = false;
-
-            document.getElementById("timeInput").value = "";
 
             updateClearMemoButton();
             saveData();
@@ -741,21 +863,6 @@ document
         };
 
         reader.readAsText(file, "UTF-8");
-    });
-
-document
-    .getElementById("timeInput")
-    .addEventListener("input", function(event) {
-        const value = parseFloat(event.target.value);
-
-        if (isNaN(value) || value < 0) {
-            totalStudyTime = 0;
-        } else {
-            totalStudyTime = value;
-        }
-
-        saveData();
-        renderTimeProgress();
     });
 
 function getPageSentences() {
@@ -874,22 +981,35 @@ function renderMemo() {
 function renderTimeProgress() {
     const progress = document.getElementById("timeProgress");
 
-    if (sentences.length === 0 || totalStudyTime <= 0) {
-        progress.textContent = "0m";
+    if (sentences.length === 0) {
+        progress.textContent = "0m / 0m";
         return;
     }
 
-    const totalPages = Math.ceil(
-        sentences.length / SENTENCES_PER_PAGE
+    const endIndex = Math.min(
+        (currentPage + 1) * SENTENCES_PER_PAGE,
+        sentences.length
     );
 
-    const progressTime =
-        totalStudyTime * (currentPage + 1) / totalPages;
+    const cumulativeWords = sentences
+        .slice(0, endIndex)
+        .reduce(
+            (sum, sentence) => sum + countWords(sentence),
+            0
+        );
 
-    const roundedTime =
-        Math.round(progressTime * 10) / 10;
+    const totalWords = sentences.reduce(
+        (sum, sentence) => sum + countWords(sentence),
+        0
+    );
 
-    progress.textContent = `${roundedTime}m`;
+    const progressMinutes = cumulativeWords / WORDS_PER_MINUTE;
+    const totalMinutes = totalWords / WORDS_PER_MINUTE;
+
+    const roundedProgress = Math.round(progressMinutes * 10) / 10;
+    const roundedTotal = Math.round(totalMinutes * 10) / 10;
+
+    progress.textContent = `${roundedProgress}m / ${roundedTotal}m`;
 }
 
 function renderNavigation() {
@@ -898,12 +1018,14 @@ function renderNavigation() {
         document.getElementById("previousButton");
     const nextButton =
         document.getElementById("nextButton");
+    const jumpInput = document.getElementById("pageJumpInput");
 
     if (sentences.length === 0) {
         pageInfo.textContent = "No sentences loaded";
 
         previousButton.disabled = true;
         nextButton.disabled = true;
+        jumpInput.value = "";
 
         return;
     }
@@ -919,6 +1041,9 @@ function renderNavigation() {
 
     nextButton.disabled =
         currentPage >= totalPages - 1;
+
+    jumpInput.value = currentPage + 1;
+    jumpInput.max = totalPages;
 }
 
 function renderCumulativeWords() {
@@ -956,12 +1081,21 @@ function renderFileName() {
     }
 }
 
-function renderTimeInput() {
-    const input = document.getElementById("timeInput");
+function renderFileMeta() {
+    const flagEl = document.getElementById("fileFlag");
+    const dateEl = document.getElementById("fileDate");
 
-    input.value = totalStudyTime > 0
-        ? totalStudyTime
-        : "";
+    if (detectedFlag) {
+        flagEl.textContent = detectedFlag;
+    } else {
+        flagEl.textContent = "";
+    }
+
+    if (loadDate) {
+        dateEl.textContent = loadDate;
+    } else {
+        dateEl.textContent = "";
+    }
 }
 
 function updateClearMemoButton() {
@@ -983,9 +1117,10 @@ function updateClearMemoButton() {
         button.classList.remove("clear-confirm");
     }
 }
+
 function render() {
     renderFileName();
-    renderTimeInput();
+    renderFileMeta();
     renderTimeProgress();
     renderSentences();
     renderMemo();
@@ -1027,6 +1162,51 @@ function nextPage() {
     window.scrollTo({
         top: 0,
         behavior: "smooth"
+    });
+}
+
+function jumpToPage() {
+    if (sentences.length === 0) {
+        return;
+    }
+
+    const totalPages = Math.ceil(
+        sentences.length / SENTENCES_PER_PAGE
+    );
+
+    const input = document.getElementById("pageJumpInput");
+    let target = parseInt(input.value, 10);
+
+    if (isNaN(target) || target < 1) {
+        target = 1;
+    } else if (target > totalPages) {
+        target = totalPages;
+    }
+
+    currentPage = target - 1;
+
+    saveData();
+    render();
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+document
+    .getElementById("pageJumpInput")
+    .addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            jumpToPage();
+        }
+    });
+
+function jumpToMemo() {
+    const section = document.getElementById("memoSection");
+    section.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
     });
 }
 
@@ -1089,4 +1269,3 @@ loadSavedData();
 
 </body>
 </html>
-   
