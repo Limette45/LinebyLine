@@ -456,6 +456,90 @@
         padding: 20px 0;
     }
 
+    /* History section */
+    .history-section {
+        margin-top: 28px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 22px 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .history-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+
+    .history-buttons button {
+        padding: 8px 14px;
+        border: 1.5px solid #d1d5db;
+        background: #f9fafb;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        transition: all 0.2s ease;
+    }
+
+    .history-buttons button:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+    }
+
+    .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .history-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: #1f2937;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .history-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .history-flag {
+        font-size: 1.05rem;
+        line-height: 1;
+    }
+
+    .history-date {
+        font-size: 0.8rem;
+        color: #9ca3af;
+        white-space: nowrap;
+    }
+
+    .history-name {
+        flex: 1;
+        word-break: break-word;
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
         body {
@@ -505,6 +589,16 @@
             padding: 18px 16px;
         }
 
+        .history-section {
+            padding: 18px 16px;
+        }
+
+        .history-header {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .navigation button {
             padding: 11px 16px;
             flex: 1;
@@ -525,6 +619,7 @@
         <button type="button" class="page-tab active" data-page="1" aria-pressed="true">Page 1</button>
         <button type="button" class="page-tab" data-page="2" aria-pressed="false">Page 2</button>
         <button type="button" class="page-tab" data-page="3" aria-pressed="false">Page 3</button>
+        <button type="button" class="page-tab" data-page="4" aria-pressed="false">Page 4</button>
     </nav>
 
     <h1>📗Line by Line</h1>
@@ -614,15 +709,32 @@
         </div>
     </div>
 
+    <div class="history-section" id="historySection">
+        <div class="history-header">
+            <h2>History</h2>
+            <div class="history-buttons">
+                <button type="button" id="toggleHistoryButton" onclick="toggleHistory()">
+                    Show History
+                </button>
+            </div>
+        </div>
+        <div class="history-list" id="historyList" style="display: none;">
+            <div class="empty-message">
+                No history yet
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
 const STORAGE_KEY_PREFIX = "lineByLineIndependentPage";
 const ACTIVE_PAGE_KEY = "lineByLineActivePage";
+const HISTORY_KEY = "lineByLineHistory";
 const SENTENCES_PER_PAGE = 10;
 const WORDS_PER_MINUTE = 160;
 const savedActivePage = Number(localStorage.getItem(ACTIVE_PAGE_KEY));
-let activePage = [1, 2, 3].includes(savedActivePage) ? savedActivePage : 1;
+let activePage = [1, 2, 3, 4].includes(savedActivePage) ? savedActivePage : 1;
 
 function getStorageKey() {
     return `${STORAGE_KEY_PREFIX}_${activePage}`;
@@ -668,6 +780,7 @@ let currentFileName = "";
 let loadDate = "";
 let detectedFlag = "";
 let clearMemoArmed = false;
+let historyVisible = false;
 
 function loadSavedData() {
     const saved = localStorage.getItem(getStorageKey());
@@ -748,6 +861,36 @@ function extractSentences(text) {
         .replace(/\s+/g, " ")
         .trim();
 
+    // Protect common abbreviations so they are not treated as sentence ends
+    const abbrevMap = [
+        { re: /\betc\./gi, placeholder: "__ABBR_ETC__" },
+        { re: /\bbzw\./gi, placeholder: "__ABBR_BZW__" },
+        { re: /\bca\./gi, placeholder: "__ABBR_CA__" },
+        { re: /\bz\.\s*B\./gi, placeholder: "__ABBR_ZB__" },
+        { re: /\be\.g\./gi, placeholder: "__ABBR_EG__" },
+        { re: /\bi\.e\./gi, placeholder: "__ABBR_IE__" },
+        { re: /\bvs\./gi, placeholder: "__ABBR_VS__" },
+        { re: /\bDr\./gi, placeholder: "__ABBR_DR__" },
+        { re: /\bMr\./gi, placeholder: "__ABBR_MR__" },
+        { re: /\bMrs\./gi, placeholder: "__ABBR_MRS__" },
+        { re: /\bMs\./gi, placeholder: "__ABBR_MS__" },
+        { re: /\bProf\./gi, placeholder: "__ABBR_PROF__" },
+        { re: /\bNr\./gi, placeholder: "__ABBR_NR__" },
+        { re: /\bapprox\./gi, placeholder: "__ABBR_APPROX__" },
+        { re: /\bmin\./gi, placeholder: "__ABBR_MIN__" },
+        { re: /\bmax\./gi, placeholder: "__ABBR_MAX__" },
+        { re: /\bresp\./gi, placeholder: "__ABBR_RESP__" },
+        { re: /\bincl\./gi, placeholder: "__ABBR_INCL__" },
+        { re: /\bexcl\./gi, placeholder: "__ABBR_EXCL__" },
+        { re: /\bu\.\s*a\./gi, placeholder: "__ABBR_UA__" },
+        { re: /\bu\.\s*Ä\./gi, placeholder: "__ABBR_UAE__" },
+        { re: /\bd\.\s*h\./gi, placeholder: "__ABBR_DH__" }
+    ];
+
+    abbrevMap.forEach(({ re, placeholder }) => {
+        text = text.replace(re, placeholder);
+    });
+
     const rawSentences = [];
     const regex = /.*?[.!?]+(?=\s|$)/g;
 
@@ -769,6 +912,38 @@ function extractSentences(text) {
         if (remaining.length > 0) {
             rawSentences.push(remaining);
         }
+    }
+
+    // Restore abbreviations
+    const restoreMap = [
+        ["__ABBR_ETC__", "etc."],
+        ["__ABBR_BZW__", "bzw."],
+        ["__ABBR_CA__", "ca."],
+        ["__ABBR_ZB__", "z. B."],
+        ["__ABBR_EG__", "e.g."],
+        ["__ABBR_IE__", "i.e."],
+        ["__ABBR_VS__", "vs."],
+        ["__ABBR_DR__", "Dr."],
+        ["__ABBR_MR__", "Mr."],
+        ["__ABBR_MRS__", "Mrs."],
+        ["__ABBR_MS__", "Ms."],
+        ["__ABBR_PROF__", "Prof."],
+        ["__ABBR_NR__", "Nr."],
+        ["__ABBR_APPROX__", "approx."],
+        ["__ABBR_MIN__", "min."],
+        ["__ABBR_MAX__", "max."],
+        ["__ABBR_RESP__", "resp."],
+        ["__ABBR_INCL__", "incl."],
+        ["__ABBR_EXCL__", "excl."],
+        ["__ABBR_UA__", "u. a."],
+        ["__ABBR_UAE__", "u. Ä."],
+        ["__ABBR_DH__", "d. h."]
+    ];
+
+    for (let i = 0; i < rawSentences.length; i++) {
+        restoreMap.forEach(([placeholder, original]) => {
+            rawSentences[i] = rawSentences[i].split(placeholder).join(original);
+        });
     }
 
     const finalSentences = [];
@@ -850,6 +1025,7 @@ document
             clearMemoArmed = false;
 
             updateClearMemoButton();
+            addToHistory(currentFileName, loadDate, detectedFlag);
             saveData();
             render();
 
@@ -1262,6 +1438,96 @@ function clearMemo() {
 
     document.getElementById("status").textContent =
         "Memo cleared.";
+}
+
+function cleanFileNameForDisplay(name) {
+    return name
+        .replace(/\s*\[[^\]]*\]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function getHistory() {
+    try {
+        const raw = localStorage.getItem(HISTORY_KEY);
+        if (!raw) return [];
+        const data = JSON.parse(raw);
+        return Array.isArray(data) ? data : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveHistory(list) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+}
+
+function addToHistory(fileName, date, flag) {
+    const cleaned = cleanFileNameForDisplay(fileName);
+    if (!cleaned) return;
+
+    const list = getHistory();
+    list.push({
+        date: date || "",
+        flag: flag || "",
+        name: cleaned
+    });
+    saveHistory(list);
+}
+
+function renderHistory() {
+    const listEl = document.getElementById("historyList");
+    if (!listEl) return;
+
+    const list = getHistory();
+    listEl.innerHTML = "";
+
+    if (list.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-message";
+        empty.textContent = "No history yet";
+        listEl.appendChild(empty);
+        return;
+    }
+
+    // Show newest first
+    for (let i = list.length - 1; i >= 0; i--) {
+        const entry = list[i];
+        const item = document.createElement("div");
+        item.className = "history-item";
+
+        const flagSpan = document.createElement("span");
+        flagSpan.className = "history-flag";
+        flagSpan.textContent = entry.flag || "";
+
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "history-date";
+        dateSpan.textContent = entry.date || "";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "history-name";
+        nameSpan.textContent = entry.name || "";
+
+        item.appendChild(flagSpan);
+        item.appendChild(dateSpan);
+        item.appendChild(nameSpan);
+        listEl.appendChild(item);
+    }
+}
+
+function toggleHistory() {
+    historyVisible = !historyVisible;
+    const listEl = document.getElementById("historyList");
+    const btn = document.getElementById("toggleHistoryButton");
+
+    if (historyVisible) {
+        listEl.style.display = "flex";
+        btn.textContent = "Hide History";
+        renderHistory();
+    } else {
+        listEl.style.display = "none";
+        btn.textContent = "Show History";
+    }
 }
 
 loadSavedData();
