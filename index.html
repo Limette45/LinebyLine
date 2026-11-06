@@ -203,6 +203,11 @@
         border-color: #9ca3af;
     }
 
+    .jump-home-wrap {
+        text-align: center;
+        margin-bottom: 18px;
+    }
+
     /* Sentence list */
     .sentence-list {
         display: flex;
@@ -688,6 +693,12 @@
     <div class="status" id="status"></div>
 
     <div class="memo-section" id="memoSection">
+        <div class="jump-home-wrap">
+            <button type="button" class="jump-memo-button" onclick="jumpToHome()">
+                Go to home⬆️
+            </button>
+        </div>
+
         <div class="memo-header">
             <h2>Memo</h2>
 
@@ -1383,6 +1394,13 @@ function jumpToMemo() {
     section.scrollIntoView({
         behavior: "smooth",
         block: "start"
+    });
+}
+
+function jumpToHome() {
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
     });
 }
 
